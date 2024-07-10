@@ -2,3 +2,4 @@
 *.txt
 *.csv
 *.log
+.env
