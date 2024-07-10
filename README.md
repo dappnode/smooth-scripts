@@ -4,7 +4,7 @@ Collection of scripts related to Smooth, Dappnode's MEV Smoothing Pool.
 
 ### Dependencies
 
-Ensure Python 3 is installed, as all scripts run with Python 3.x. The following are the required libraries required, which can be installed with pip:
+Ensure Python 3 is installed, as all scripts run with Python 3.x. The following are the required libraries, which can be installed with pip:
 
 ```bash
 pip install requests
