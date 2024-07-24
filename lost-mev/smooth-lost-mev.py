@@ -2,14 +2,18 @@ import requests
 import time
 import csv
 from datetime import datetime
+import argparse
 
-def get_blocks_with_vanilla_reward():
+def get_blocks(track_all=False):
     url = "https://sp-api.dappnode.io/memory/proposedblocks"
     try:
         response = requests.get(url)
         response.raise_for_status()
         blocks = response.json()
-        return [block['block'] for block in blocks if block['reward_type'] == 'vanila']
+        if track_all:
+            return [block['block'] for block in blocks]
+        else:
+            return [block['block'] for block in blocks if block['reward_type'] == 'vanila']
     except requests.RequestException as e:
         print(f"Failed to fetch data: {e}")
         return []
@@ -37,7 +41,7 @@ def write_summary_to_file(total_difference, top_differences):
         for diff, block in top_differences:
             file.write(f"Block {block}: {diff}\n")
 
-def main():
+def main(track_all):
     # Check if the file exists, if not create and write the header
     try:
         with open('results.csv', 'x', newline='') as file:
@@ -46,7 +50,7 @@ def main():
     except FileExistsError:
         pass
 
-    blocks = get_blocks_with_vanilla_reward()
+    blocks = get_blocks(track_all)
     total_difference = 0.0
     differences = []
 
@@ -73,4 +77,7 @@ def main():
         print(f"Block {block}: {diff}")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description='Track Ethereum block differences.')
+    parser.add_argument('--track-all', action='store_true', help='Track all blocks instead of only those with reward_type == "vanila"')
+    args = parser.parse_args()
+    main(args.track_all)
