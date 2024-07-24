@@ -9,7 +9,7 @@ def get_blocks_with_vanilla_reward():
         response = requests.get(url)
         response.raise_for_status()
         blocks = response.json()
-        return [block['block'] for block in blocks if block['reward_type'] == 'vanila']  # Correcting the typo in 'vanila' if necessary
+        return [block['block'] for block in blocks if block['reward_type'] == 'vanila']
     except requests.RequestException as e:
         print(f"Failed to fetch data: {e}")
         return []
@@ -29,6 +29,13 @@ def write_to_csv(block_number, difference, timestamp):
     with open('results.csv', 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([timestamp, block_number, difference])
+
+def write_summary_to_file(total_difference, top_differences):
+    with open('stats_summary.txt', 'w') as file:
+        file.write(f"Total Difference Sum: {total_difference}\n")
+        file.write("Top 10 Block Differences:\n")
+        for diff, block in top_differences:
+            file.write(f"Block {block}: {diff}\n")
 
 def main():
     # Check if the file exists, if not create and write the header
@@ -56,6 +63,10 @@ def main():
     differences.sort(reverse=True, key=lambda x: x[0])
     top_differences = differences[:10]
 
+    # Write summary stats to file
+    write_summary_to_file(total_difference, top_differences)
+
+    # Print the same information to the console
     print(f"Total Difference Sum: {total_difference}")
     print("Top 10 Block Differences:")
     for diff, block in top_differences:
