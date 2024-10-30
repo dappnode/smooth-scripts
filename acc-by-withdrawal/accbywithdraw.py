@@ -2,14 +2,25 @@ import requests
 import csv
 import json
 from collections import defaultdict
+from decimal import Decimal, getcontext
+from json import JSONEncoder
+
+# Set the precision for Decimal operations
+getcontext().prec = 28  # Adjust as needed for your requirements
+
+class CustomEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return format(obj, '.18f')  # Ensure Decimal objects are formatted correctly
+        return JSONEncoder.default(self, obj)
 
 # Validator API endpoint
-validators_url = "http://65.109.102.216/memory/validators"
+validators_url = "https://sp-api.dappnode.io/memory/validators"
 # Fees info API endpoint
-feesinfo_url = "http://65.109.102.216/memory/feesinfo"
+feesinfo_url = "https://sp-api.dappnode.io//memory/feesinfo"
 
-# Conversion factor from wei to ether
-WEI_TO_ETH = 10**18
+# Conversion factor from wei to ether as a Decimal
+WEI_TO_ETH = Decimal('10') ** 18
 
 # Make requests to the two API endpoints
 validators_response = requests.get(validators_url)
@@ -22,17 +33,17 @@ if validators_response.status_code == 200 and feesinfo_response.status_code == 2
     feesinfo_data = feesinfo_response.json()
 
     # Dictionary to accumulate rewards for each withdrawal address (in wei)
-    rewards_by_address = defaultdict(int)
+    rewards_by_address = defaultdict(Decimal)
 
     # Sum up accumulated rewards by withdrawal address from the validators endpoint
     for validator in validators_data:
         withdrawal_address = validator["withdrawal_address"]
-        accumulated_rewards_wei = int(validator["accumulated_rewards_wei"])
+        accumulated_rewards_wei = Decimal(validator["accumulated_rewards_wei"])
         rewards_by_address[withdrawal_address] += accumulated_rewards_wei
 
     # Include the pool fee data
     pool_fee_address = feesinfo_data["pool_fee_address"]
-    pool_accumulated_fees = int(feesinfo_data["pool_accumulated_fees"])
+    pool_accumulated_fees = Decimal(feesinfo_data["pool_accumulated_fees"])
     rewards_by_address[pool_fee_address] += pool_accumulated_fees
 
     # Sort the results by total accumulated rewards in descending order (for CSV)
@@ -43,20 +54,20 @@ if validators_response.status_code == 200 and feesinfo_response.status_code == 2
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(['withdrawaladdress', 'totalaccumulated_wei'])
         for address, total_rewards in sorted_rewards:
-            csvwriter.writerow([address, total_rewards])
+            csvwriter.writerow([address, str(total_rewards)])  # Convert Decimal to string for CSV
 
     # Build the JSON structure with ETH values as numbers, sorted in descending order
     json_data = {
         "symbol": "ETH",
         "addresses": {
-            address: round(total_rewards / WEI_TO_ETH, 18)  # Convert to ETH and round to 18 decimals
+            address: total_rewards / WEI_TO_ETH  # Convert to ether using Decimal division
             for address, total_rewards in sorted_rewards  # Use sorted rewards for order
         }
     }
 
-    # Write the JSON to a file
+    # Write the JSON to a file using the custom encoder
     with open('accumulated_rewards_eth.json', 'w') as jsonfile:
-        json.dump(json_data, jsonfile, indent=2)
+        json.dump(json_data, jsonfile, cls=CustomEncoder, indent=2)
 
     # Save the list of addresses to a text file
     with open('addresses.txt', 'w') as addrfile:
