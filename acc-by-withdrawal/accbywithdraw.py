@@ -35,11 +35,15 @@ if validators_response.status_code == 200 and feesinfo_response.status_code == 2
     # Dictionary to accumulate rewards for each withdrawal address (in wei)
     rewards_by_address = defaultdict(Decimal)
 
+    # Allowed beacon statuses
+    allowed_statuses = {"active_ongoing", "yellowcard", "redcard"}
+
     # Sum up accumulated rewards by withdrawal address from the validators endpoint
     for validator in validators_data:
-        withdrawal_address = validator["withdrawal_address"]
-        accumulated_rewards_wei = Decimal(validator["accumulated_rewards_wei"])
-        rewards_by_address[withdrawal_address] += accumulated_rewards_wei
+        if validator["beacon_status"] in allowed_statuses:
+            withdrawal_address = validator["withdrawal_address"]
+            accumulated_rewards_wei = Decimal(validator["accumulated_rewards_wei"])
+            rewards_by_address[withdrawal_address] += accumulated_rewards_wei
 
     # Include the pool fee data
     pool_fee_address = feesinfo_data["pool_fee_address"]
@@ -49,19 +53,20 @@ if validators_response.status_code == 200 and feesinfo_response.status_code == 2
     # Sort the results by total accumulated rewards in descending order (for CSV)
     sorted_rewards = sorted(rewards_by_address.items(), key=lambda x: x[1], reverse=True)
 
-    # Write the results to a CSV file (in wei)
-    with open('accumulated_rewards_wei.csv', 'w', newline='') as csvfile:
+    # Write the results to a CSV file (in ether)
+    with open('accumulated_rewards_eth.csv', 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
-        csvwriter.writerow(['withdrawaladdress', 'totalaccumulated_wei'])
+        csvwriter.writerow(['withdrawaladdress', 'totalaccumulated_eth'])
         for address, total_rewards in sorted_rewards:
-            csvwriter.writerow([address, str(total_rewards)])  # Convert Decimal to string for CSV
+            eth_amount = total_rewards / WEI_TO_ETH  # Convert wei to ether
+            csvwriter.writerow([address, format(eth_amount, '.18f')])  # Write formatted ether amounts
 
     # Build the JSON structure with ETH values as numbers, sorted in descending order
     json_data = {
         "symbol": "ETH",
         "addresses": {
-            address: total_rewards / WEI_TO_ETH  # Convert to ether using Decimal division
-            for address, total_rewards in sorted_rewards  # Use sorted rewards for order
+            address: total_rewards / WEI_TO_ETH
+            for address, total_rewards in sorted_rewards
         }
     }
 
@@ -72,8 +77,8 @@ if validators_response.status_code == 200 and feesinfo_response.status_code == 2
     # Save the list of addresses to a text file
     with open('addresses.txt', 'w') as addrfile:
         for address in rewards_by_address.keys():
-            addrfile.write(f"{address}\n")  # Write each address on a new line
+            addrfile.write(f"{address}\n")
 
-    print("Results written to 'accumulated_rewards_wei.csv', 'accumulated_rewards_eth.json', and 'addresses.txt'")
+    print("Results written to 'accumulated_rewards_eth.csv', 'accumulated_rewards_eth.json', and 'addresses.txt'")
 else:
     print(f"Failed to fetch data. Status codes: validators: {validators_response.status_code}, feesinfo: {feesinfo_response.status_code}")
