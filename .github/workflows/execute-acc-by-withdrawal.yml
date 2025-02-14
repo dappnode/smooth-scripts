@@ -1,4 +1,4 @@
-name: Execute & Update accumulated rewards
+name: Update Accumulated Rewards
 
 on:
   schedule:
@@ -25,7 +25,7 @@ jobs:
         
     - name: Run accumulation script
       run: |
-        cd smooth-scripts/acc-by-withdrawal
+        cd acc-by-withdrawal
         python accbywithdrawal.py
         
     - name: Configure Git
@@ -35,7 +35,7 @@ jobs:
         
     - name: Commit and push if there are changes
       run: |
-        cd smooth-scripts/acc-by-withdrawal
+        cd acc-by-withdrawal
         if [[ -n "$(git status --porcelain results/)" ]]; then
           git add results/
           git commit -m "Update accumulated rewards data [skip ci]"
