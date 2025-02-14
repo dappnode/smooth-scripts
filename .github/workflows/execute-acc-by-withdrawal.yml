@@ -1,0 +1,45 @@
+name: Execute & Update accumulated rewards
+
+on:
+  schedule:
+    - cron: '0 */8 * * *'  # Runs every 8 hours
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  update-rewards:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+        
+    - name: Run accumulation script
+      run: |
+        cd smooth-scripts/acc-by-withdrawal
+        python accbywithdrawal.py
+        
+    - name: Configure Git
+      run: |
+        git config --global user.name "GitHub Action"
+        git config --global user.email "actions@github.com"
+        
+    - name: Commit and push if there are changes
+      run: |
+        cd smooth-scripts/acc-by-withdrawal
+        if [[ -n "$(git status --porcelain results/)" ]]; then
+          git add results/
+          git commit -m "Update accumulated rewards data [skip ci]"
+          git push
+        else
+          echo "No changes to commit"
+        fi

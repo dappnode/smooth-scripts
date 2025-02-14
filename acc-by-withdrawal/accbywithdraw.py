@@ -1,3 +1,4 @@
+import os
 import requests
 import csv
 import json
@@ -13,6 +14,10 @@ class CustomEncoder(JSONEncoder):
         if isinstance(obj, Decimal):
             return format(obj, '.18f')  # Ensure Decimal objects are formatted correctly
         return JSONEncoder.default(self, obj)
+
+# Create results directory if it doesn't exist
+results_dir = "./results"
+os.makedirs(results_dir, exist_ok=True)
 
 # Validator API endpoint
 validators_url = "https://sp-api.dappnode.io/memory/validators"
@@ -54,7 +59,8 @@ if validators_response.status_code == 200 and feesinfo_response.status_code == 2
     sorted_rewards = sorted(rewards_by_address.items(), key=lambda x: x[1], reverse=True)
 
     # Write the results to a CSV file (in ether)
-    with open('accumulated_rewards_eth.csv', 'w', newline='') as csvfile:
+    csv_path = os.path.join(results_dir, 'accumulated_rewards_eth.csv')
+    with open(csv_path, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile)
         csvwriter.writerow(['withdrawaladdress', 'totalaccumulated_eth'])
         for address, total_rewards in sorted_rewards:
@@ -71,14 +77,16 @@ if validators_response.status_code == 200 and feesinfo_response.status_code == 2
     }
 
     # Write the JSON to a file using the custom encoder
-    with open('accumulated_rewards_eth.json', 'w') as jsonfile:
+    json_path = os.path.join(results_dir, 'accumulated_rewards_eth.json')
+    with open(json_path, 'w') as jsonfile:
         json.dump(json_data, jsonfile, cls=CustomEncoder, indent=2)
 
     # Save the list of addresses to a text file
-    with open('addresses.txt', 'w') as addrfile:
+    txt_path = os.path.join(results_dir, 'addresses.txt')
+    with open(txt_path, 'w') as addrfile:
         for address in rewards_by_address.keys():
             addrfile.write(f"{address}\n")
 
-    print("Results written to 'accumulated_rewards_eth.csv', 'accumulated_rewards_eth.json', and 'addresses.txt'")
+    print(f"Results written to {csv_path}, {json_path}, and {txt_path}")
 else:
     print(f"Failed to fetch data. Status codes: validators: {validators_response.status_code}, feesinfo: {feesinfo_response.status_code}")
