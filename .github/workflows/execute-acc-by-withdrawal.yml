@@ -23,10 +23,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install requests
         
+    - name: Debug directory structure
+      run: |
+        pwd
+        ls -la
+        
     - name: Run accumulation script
       run: |
         cd acc-by-withdrawal
-        python accbywithdrawal.py
+        python accbywithdraw.py
         
     - name: Configure Git
       run: |
