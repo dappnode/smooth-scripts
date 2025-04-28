@@ -56,7 +56,7 @@ for pool_size, rewards in results.items():
     prob = np.mean(rewards > rewards_my_pool)
     probabilities[pool_size] = prob
 
-# --- Plotting ---
+# --- Plotting (Round 1: No Fee) ---
 
 # 1. Blocks proposed per year
 blocks_proposed = {pool_size: pool_size * blocks_per_validator_per_year for pool_size in pool_sizes}
@@ -150,7 +150,8 @@ plt.grid(True, alpha=0.3)
 plt.savefig("charts/cdf_rewards_no_fee.png", dpi=300, bbox_inches='tight')
 plt.show()
 
-# --- Second round with 7% fee discount ---
+# --- Second round: My Pool With 7% Fee ---
+
 rewards_my_pool_discounted = rewards_my_pool * 0.93
 
 # New probabilities
@@ -224,7 +225,86 @@ plt.grid(True, alpha=0.3)
 plt.savefig("charts/cdf_rewards_fee.png", dpi=300, bbox_inches='tight')
 plt.show()
 
-# Print probabilities
+# --- Third round: Smooth + Small Pool (with 7% fee) ---
+
+# New results: Smooth + pool_size, 7% fee applied
+combined_results = {}
+for pool_size in pool_sizes:
+    total_validators = validators_my_pool + pool_size
+    combined_rewards = simulate_pool_rewards(total_validators, payments, blocks_per_validator_per_year)
+    combined_rewards_discounted = combined_rewards * 0.93
+    combined_results[pool_size] = combined_rewards_discounted
+
+# Compare small pool (no fee) vs (Smooth + pool_size) with 7% fee
+probabilities_combined = {}
+for pool_size in pool_sizes:
+    prob = np.mean(results[pool_size] > combined_results[pool_size])
+    probabilities_combined[pool_size] = prob
+
+# 8. Probability small pool > Smooth + small pool (with fee)
+plt.figure(figsize=(10, 6))
+probs = [probabilities_combined[p] for p in pool_sizes]
+
+bars = plt.bar(pool_labels, probs, color=colors)
+for bar in bars:
+    bar.set_edgecolor("black")
+
+plt.axhline(0.5, color='red', linestyle='dashed', linewidth=2, label="50% line")
+
+plt.title(f"Probability Pool Beats (Smooth + Pool with 7% Fee)")
+plt.ylabel("Probability")
+plt.xlabel("Pool Size (validators)")
+plt.ylim(0, 1)
+plt.legend()
+plt.grid(axis='y', alpha=0.3)
+plt.savefig("charts/probability_combined_smooth_plus_pool_fee.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+# 9. Distribution (KDE) Smooth + Pool with 7% fee
+plt.figure(figsize=(14, 8))
+
+for idx, pool_size in enumerate(pool_sizes):
+    sns.kdeplot(
+        combined_results[pool_size],
+        fill=True,
+        bw_adjust=1.2,
+        label=f"Smooth+{pool_size} validators (7% Fee)",
+        color=colors[idx],
+        alpha=0.5,
+        clip=(0, 0.10)
+    )
+
+plt.title("Distribution of Average Reward per Block (Smooth + Pool with 7% Fee, Zoomed)")
+plt.xlabel("Reward per Block (ETH)")
+plt.ylabel("Density")
+plt.xlim(0, 0.10)
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.savefig("charts/kde_combined_smooth_plus_pool_fee.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+# 10. Cumulative distribution (CDF) Smooth + Pool with 7% fee
+plt.figure(figsize=(14, 8))
+
+for idx, pool_size in enumerate(pool_sizes):
+    sorted_rewards = np.sort(combined_results[pool_size])
+    cdf = np.arange(1, len(sorted_rewards)+1) / len(sorted_rewards)
+    sorted_rewards = np.insert(sorted_rewards, 0, 0)
+    cdf = np.insert(cdf, 0, 0)
+    plt.plot(sorted_rewards, cdf, label=f"Smooth+{pool_size} validators (7% Fee)", color=colors[idx], linewidth=2)
+
+plt.title("CDF of Average Reward per Block (Smooth + Pool with 7% Fee, Zoomed)")
+plt.xlabel("Reward per Block (ETH)")
+plt.ylabel("Cumulative Probability")
+plt.xlim(0, 0.10)
+plt.ylim(0, 1)
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.savefig("charts/cdf_combined_smooth_plus_pool_fee.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+
+# --- Print Results ---
 print("\n--- Probabilities (No Fee) ---")
 for pool_size, prob in probabilities.items():
     print(f"Pool with {pool_size} validators beats Smooth: {prob*100:.2f}% chance")
@@ -232,3 +312,7 @@ for pool_size, prob in probabilities.items():
 print("\n--- Probabilities (With 7% Fee) ---")
 for pool_size, prob in probabilities_discounted.items():
     print(f"Pool with {pool_size} validators beats Smooth (with fee): {prob*100:.2f}% chance")
+
+print("\n--- Probabilities (Pool > Smooth+Pool with 7% Fee) ---")
+for pool_size, prob in probabilities_combined.items():
+    print(f"Pool with {pool_size} validators beats Smooth+{pool_size} validators (with fee): {prob*100:.2f}% chance")
