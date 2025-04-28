@@ -7,8 +7,12 @@ Gets the rewards of latest X blocks starting from the highest Y block, thanks to
 Create a `.env` file with the following content:
 
 ```dotenv
-NUM_CALLS=100
-START_BLOCK=22347396
+NUM_CALLS=20000
+START_BLOCK=22337397
+VALIDATORS_MY_POOL=1400
+BLOCK_DATA_CSV=block_data.csv
+MY_POOL_FEE=0.93
+
 ```
 
 How to Run:
