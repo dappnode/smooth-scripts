@@ -79,7 +79,7 @@ plt.xlabel("Pool Size (Validators)")
 plt.grid(axis='y', alpha=0.3)
 plt.ylim(0, max(blocks_values) * 1.15)
 plt.savefig("charts/blocks_proposed_per_year.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # 2. Distribution of rewards per block (KDE plot, zoomed)
 plt.figure(figsize=(14, 8))
@@ -105,7 +105,7 @@ plt.ylabel("Density")
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.savefig("charts/kde_rewards_per_block_no_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # 3. Probability another pool beats mine (Bar Chart)
 plt.figure(figsize=(10, 6))
@@ -126,7 +126,7 @@ plt.ylim(0, 1)
 plt.legend()
 plt.grid(axis='y', alpha=0.3)
 plt.savefig("charts/probability_outperform_no_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # 4. Cumulative distribution (CDF Plot, zoomed)
 plt.figure(figsize=(14, 8))
@@ -148,7 +148,7 @@ plt.ylabel("Cumulative Probability")
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.savefig("charts/cdf_rewards_no_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # --- Second round: My Pool With 7% Fee ---
 
@@ -182,7 +182,7 @@ plt.ylabel("Density")
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.savefig("charts/kde_rewards_per_block_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # 6. Probability another pool beats mine (7% fee case)
 plt.figure(figsize=(10, 6))
@@ -201,7 +201,7 @@ plt.ylim(0, 1)
 plt.legend()
 plt.grid(axis='y', alpha=0.3)
 plt.savefig("charts/probability_outperform_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # 7. Cumulative distribution (CDF with 7% fee)
 plt.figure(figsize=(14, 8))
@@ -223,7 +223,7 @@ plt.ylabel("Cumulative Probability")
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.savefig("charts/cdf_rewards_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # --- Third round: Smooth + Small Pool (with 7% fee) ---
 
@@ -258,7 +258,7 @@ plt.ylim(0, 1)
 plt.legend()
 plt.grid(axis='y', alpha=0.3)
 plt.savefig("charts/probability_combined_smooth_plus_pool_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # 9. Distribution (KDE) Smooth + Pool with 7% fee
 plt.figure(figsize=(14, 8))
@@ -281,7 +281,7 @@ plt.xlim(0, 0.10)
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.savefig("charts/kde_combined_smooth_plus_pool_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 # 10. Cumulative distribution (CDF) Smooth + Pool with 7% fee
 plt.figure(figsize=(14, 8))
@@ -301,7 +301,7 @@ plt.ylim(0, 1)
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.savefig("charts/cdf_combined_smooth_plus_pool_fee.png", dpi=300, bbox_inches='tight')
-plt.show()
+plt.close()
 
 
 # --- Print Results ---
