@@ -49,14 +49,14 @@ events = {
 # Plot
 plt.figure(figsize=(12, 6))
 plt.plot(daily_df['vanila_pct'], label='Daily % of Vanilla Blocks', alpha=0.3)
-plt.plot(daily_df['vanila_pct_rolling'], label='10-Day Rolling Avg %', linewidth=2)
+plt.plot(daily_df['vanila_pct_rolling'], label='21-Day Rolling Avg %', linewidth=2)
 
 # Add vertical lines and labels
 for label, date in events.items():
     plt.axvline(x=date, color='red', linestyle='--', alpha=0.7)
     plt.text(date, 57, label, rotation=90, verticalalignment='top', color='red', fontsize=9)
 
-plt.title('Percentage of Vanilla Blocks Over Time (10-Day Rolling Average)')
+plt.title('Percentage of Vanilla Blocks Over Time (21-Day Rolling Average)')
 plt.xlabel('Date')
 plt.ylabel('Vanilla Block Percentage (%)')
 plt.ylim(0, 60)  # Limit y-axis to 60%
